@@ -1,0 +1,31 @@
+# 인증 정보 — 절대 커밋 금지
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# 가상환경
+.venv/
+venv/
+env/
+
+# 로그
+logs/
+
+# 에디터
+.idea/
+.vscode/
+*.swp
+
+# macOS
+.DS_Store
+
+# 내부 문서 (크리덴셜·내부 서버·직원 정보 포함)
+개발장비_테스트_절차.txt
+
+# 레거시 스크립트 (개인 경로·하드코딩 포함, 새 샘플이 대체)
+python/
