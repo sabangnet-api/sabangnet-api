@@ -26,6 +26,25 @@ sys.path.insert(0, ".")
 from logger import setup_logging
 
 
+def _print_summary(results: list[dict]) -> None:
+    SEP = "─" * 70
+    print(f"\n{'=' * 70}")
+    print("  [전체 실행 결과 요약]")
+    print(f"{'=' * 70}")
+    for i, r in enumerate(results, 1):
+        print(f"  {i:>2}. API 제목 : {r['title']}")
+        print(f"      URL     : {r['url']}")
+        print(f"      code    : \"{r['code']}\"")
+        print(f"      message : \"{r['message']}\"")
+        if i < len(results):
+            print(f"      {SEP}")
+    total = len(results)
+    passed = sum(1 for r in results if r["code"].isdigit() and int(r["code"]) < 400)
+    failed = total - passed
+    print(f"\n  총 {total}건  |  성공 {passed}  |  실패 {failed}")
+    print("=" * 70)
+
+
 def main():
     setup_logging()
     parser = argparse.ArgumentParser(description="전체 API 검증 테스트 실행")
@@ -42,13 +61,17 @@ def main():
     )
     args = parser.parse_args()
 
+    all_results: list[dict] = []
+
     if args.suite in ("sabangnet", "all"):
         from sabangnet.test_sabangnet_api import run_all as run_sb
-        run_sb()
+        all_results.extend(run_sb())
 
     if args.suite in ("fulfillment", "all"):
         from fulfillment.test_fulfillment_api import run_all as run_ff
-        run_ff()
+        all_results.extend(run_ff())
+
+    _print_summary(all_results)
 
 
 if __name__ == "__main__":
