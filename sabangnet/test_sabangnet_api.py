@@ -1,38 +1,53 @@
 """
-사방넷 API 검증 테스트 (14종)
-─────────────────────────────────────────────────────────────────
- 카테고리       | API명                  | 메서드 | 엔드포인트
-─────────────────────────────────────────────────────────────────
- 문의사항       | 문의사항 정보 조회       | GET    | /gw/v3/cs
- 문의사항       | 문의사항 답변 저장       | POST   | /gw/v3/cs/answer
- 상품           | 상품 조회               | GET    | /gw/v3/product
- 상품           | 상품 등록&수정          | POST   | /gw/v3/product/upsert
- 상품정보제공고시| 상품정보제공고시 목록 조회| GET   | /gw/v3/product-info-notice/{noticeType}
- 쇼핑몰         | 쇼핑몰 정보 조회        | GET    | /gw/v3/mall/{shopDivCode}
- 운송장         | 운송장 저장/수정        | POST   | /gw/v3/waybill
- 주문           | 주문 목록 조회          | GET    | /gw/v3/order
- 추가상품       | 추가상품 등록&수정       | POST   | /gw/v3/additional-product
- 카테고리       | 전체 마이카테고리 목록 조회| GET  | /gw/v3/category
- 카테고리       | 마이카테고리 등록&수정   | POST   | /gw/v3/category
- 카테고리       | 마이카테고리 목록 조회   | GET    | /gw/v3/category/{lCategoryCode}
- 클레임         | 클레임 목록 조회        | GET    | /gw/v3/claim
- 판매채널별상품 | 채널별 상품 등록&수정   | POST   | /gw/v3/channels-product
-─────────────────────────────────────────────────────────────────
+사방넷 주문관리 API 검증 테스트 (14종)
+
+사방넷 OMS(주문관리시스템)의 주요 기능을 REST/JSON 으로 연동하는 API 샘플.
+모든 엔드포인트는 `/v3/sb/` 접두사를 사용합니다 (config.SABANGNET_API_BASE).
+※ OpenAPI 명세(sabangnet-current.yaml)에는 경로가 `/gw/v3/`로 표기되어 있으나,
+  실제 호출 경로는 `/v3/sb/`이며 아래 표/주석은 실제 호출 경로 기준입니다.
+
+요청 본문 규칙 (명세 공통)
+  - 등록(단일)/수정 : 대상 data object(JSON)
+  - 조회(단일/목록) : query parameter 또는 조회 요청 object(JSON)
+  - 등록(벌크)      : 대상 object 배열
+
+응답 포맷 (명세 공통)
+  - code(string, "200"=성공) / message(string) / response(object)
+  - 목록 응답 response : total_count, total_page, current_page, data_list
+  - 벌크 응답 response : processed_count, processed_data_list
+
+─────────────────────────────────────────────────────────────────────────────
+ 태그           | API명                    | 메서드 | 엔드포인트
+─────────────────────────────────────────────────────────────────────────────
+ 문의사항       | 문의사항 정보 조회        | GET    | /v3/sb/cs
+ 문의사항       | 문의사항 답변 저장        | POST   | /v3/sb/cs/answer
+ 상품           | 상품 조회                | GET    | /v3/sb/product
+ 상품           | 상품 등록&수정           | POST   | /v3/sb/product/upsert
+ 상품정보제공고시| 상품정보제공고시 목록 조회 | GET    | /v3/sb/product-info-notice/{noticeType}
+ 쇼핑몰         | 쇼핑몰 정보 조회          | GET    | /v3/sb/mall/{shopDivCode}
+ 운송장         | 운송장 저장/수정          | POST   | /v3/sb/waybill
+ 주문           | 주문 목록 조회            | GET    | /v3/sb/order
+ 추가상품       | 추가상품 등록&수정        | POST   | /v3/sb/additional-product
+ 카테고리       | 전체 마이카테고리 목록 조회 | GET    | /v3/sb/category
+ 카테고리       | 마이카테고리 등록&수정     | POST   | /v3/sb/category
+ 카테고리       | 마이카테고리 목록 조회     | GET    | /v3/sb/category/{lCategoryCode}
+ 클레임         | 클레임 목록 조회          | GET    | /v3/sb/claim
+ 판매채널별 상품 | 채널별 상품 등록&수정      | POST   | /v3/sb/channels-product
+─────────────────────────────────────────────────────────────────────────────
 
 실행:
     # 사전 준비
     pip install -r requirements.txt
 
-    # 환경변수 설정 (.env 파일 또는 직접 export)
-    export SABANGNET_GW_BASE=http://localhost:8080
-    export BEARER_TOKEN=<발급된 토큰>
+    # 환경변수 설정 (.env 파일에 CLIENT_ID / SECRET_KEY / SVC_ACNT_ID 입력)
+    cp .env.example .env
 
-    # 실행
-    cd SB-DC/sample-code
+    # 실행 (반드시 레포 루트에서)
     python sabangnet/test_sabangnet_api.py
 
-    # 특정 테스트만 실행
+    # 특정 테스트만 실행 / 목록 확인
     python sabangnet/test_sabangnet_api.py --test cs_search
+    python sabangnet/test_sabangnet_api.py --list
 """
 import sys
 import json
@@ -76,7 +91,10 @@ def _print_result(name: str, resp: requests.Response, req_body=None, show_body: 
 
 
 # ─────────────────────────────────────────────────────────────
-# 1. 문의사항 정보 조회  GET /gw/v3/cs
+# 1. 문의사항 정보 조회  GET /v3/sb/cs   (operationId: searchCsInfo_1)
+#    요청 본문: SbGwApiCsInfo.Request
+#    필수값  : startDate, endDate(8 또는 14자리), page(>=1), perPage(50~1000)
+#    csStatus: NEW_RECEIPT | ANSWER_SAVED | ANSWER_SENT | FORCED_CONVERSION
 # ─────────────────────────────────────────────────────────────
 def test_cs_search():
     url = f"{SABANGNET_API_BASE}/cs"
@@ -86,7 +104,10 @@ def test_cs_search():
 
 
 # ─────────────────────────────────────────────────────────────
-# 2. 문의사항 답변 저장  POST /gw/v3/cs/answer
+# 2. 문의사항 답변 저장  POST /v3/sb/cs/answer   (operationId: saveCsAnswer_1)
+#    요청 본문   : SbGwApiCsAnswer.Request → items: [CsAnswerItem{csSrno, answerContent}]
+#    답변가능상태: NEW_RECEIPT(신규접수), ANSWER_SAVED(답변저장)
+#    응답        : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_cs_answer():
     url = f"{SABANGNET_API_BASE}/cs/answer"
@@ -96,7 +117,9 @@ def test_cs_answer():
 
 
 # ─────────────────────────────────────────────────────────────
-# 3. 상품 조회  GET /gw/v3/product
+# 3. 상품 조회  GET /v3/sb/product   (operationId: getProduct_1)
+#    query: customProductCode(자체상품코드) 또는 productCode(사방넷상품코드)
+#           둘 다 전달 시 자체상품코드 우선 조회
 # ─────────────────────────────────────────────────────────────
 def test_product_get():
     url = f"{SABANGNET_API_BASE}/product"
@@ -106,7 +129,11 @@ def test_product_get():
 
 
 # ─────────────────────────────────────────────────────────────
-# 4. 상품 등록&수정  POST /gw/v3/product/upsert
+# 4. 상품 등록&수정  POST /v3/sb/product/upsert   (operationId: upsertProductList_1)
+#    요청 본문 : SbGwApiUpsertProductRequest → products: [SbGwApiProduct]
+#    처리      : 자체상품코드 존재 시 수정(U), 없으면 등록(I) / 최대 5,000건
+#    수정 규칙 : 필드 누락·null=미수정, ""=클리어 (상세설명·관리자메모 제외)
+#    응답      : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_product_upsert():
     url = f"{SABANGNET_API_BASE}/product/upsert"
@@ -116,7 +143,10 @@ def test_product_upsert():
 
 
 # ─────────────────────────────────────────────────────────────
-# 5. 상품정보제공고시 목록 조회  GET /gw/v3/product-info-notice/{noticeType}
+# 5. 상품정보제공고시 목록 조회  GET /v3/sb/product-info-notice/{noticeType}
+#    (operationId: getProductInfoNotice_1)
+#    noticeType(path) : WEAR | SHOES | BAG | COSMETICS | PROCESSED_FOOD ...
+#                       (전자상거래법상 상품정보제공고시 유형 코드)
 # ─────────────────────────────────────────────────────────────
 def test_product_info_notice():
     notice_type = PRODUCT_INFO_NOTICE_PARAMS["noticeType"]
@@ -127,7 +157,10 @@ def test_product_info_notice():
 
 
 # ─────────────────────────────────────────────────────────────
-# 6. 쇼핑몰 정보 조회  GET /gw/v3/mall/{shopDivCode}
+# 6. 쇼핑몰 정보 조회  GET /v3/sb/mall/{shopDivCode}   (operationId: getMallInfo_1)
+#    shopDivCode(path)  : CHOP(일반) | SHOP(제휴) | GLOBAL(해외)
+#    shopLoginId(query) : 특정 쇼핑몰만 조회 시 전달 (선택)
+#    조회 결과 없으면 400 반환
 # ─────────────────────────────────────────────────────────────
 def test_mall_info():
     shop_div_code = MALL_INFO_PARAMS["shopDivCode"]
@@ -138,7 +171,12 @@ def test_mall_info():
 
 
 # ─────────────────────────────────────────────────────────────
-# 7. 운송장 저장/수정  POST /gw/v3/waybill
+# 7. 운송장 저장/수정  POST /v3/sb/waybill   (operationId: saveWayBill_1)
+#    요청 본문 : SbGwApiSaveWayBill.Request → forceUpdateYn(Y/N), waybillList: [WayBill]
+#    WayBill   : sbOrderNo, deliveryCompanyCode(택배사), wayBillNo, hopeDeliveryDate
+#    등록 가능 : 주문확인/출고대기/교환발송준비 상태 (주문확인→등록 시 출고대기로 전환)
+#    수정 불가 : 송장 전송완료, 강제완료 상태
+#    응답      : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_waybill_save():
     url = f"{SABANGNET_API_BASE}/waybill"
@@ -148,7 +186,12 @@ def test_waybill_save():
 
 
 # ─────────────────────────────────────────────────────────────
-# 8. 주문 목록 조회  GET /gw/v3/order
+# 8. 주문 목록 조회  GET /v3/sb/order   (operationId: searchOrders_1)
+#    요청 본문 : SbGwApiOrderRequest
+#    필수값    : page(>=1), perPage(50~1000), responseItems
+#    주의      : 조건 충족 신규주문이 '주문확인'으로 변경됨
+#                → 변경 원치 않으면 updateOrderStsYn=N
+#    조회기간  : 자사몰 필드 포함 시 2개월 이내, 미포함 시 6개월 이내
 # ─────────────────────────────────────────────────────────────
 def test_order_search():
     url = f"{SABANGNET_API_BASE}/order"
@@ -158,7 +201,13 @@ def test_order_search():
 
 
 # ─────────────────────────────────────────────────────────────
-# 9. 추가상품 등록&수정  POST /gw/v3/additional-product
+# 9. 추가상품 등록&수정  POST /v3/sb/additional-product
+#    (operationId: saveAdditionalProductList_1)
+#    요청 본문 : SbGwApiAddProductRequest → productInfoList: [ProductInfo]
+#    ProductInfo 필수 : actionType(I/U), groupCode, groupName
+#    groupType : G | M | null  /  deliveryType : SELF_COMPANY | OTHER_COMPANY
+#    salesType : CONSIGNMENT | PURCHASE | ETC
+#    응답      : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_additional_product():
     url = f"{SABANGNET_API_BASE}/additional-product"
@@ -168,7 +217,9 @@ def test_additional_product():
 
 
 # ─────────────────────────────────────────────────────────────
-# 10. 전체 마이카테고리 목록 조회  GET /gw/v3/category
+# 10. 전체 마이카테고리 목록 조회  GET /v3/sb/category
+#     (operationId: getAllMyCategories_1)
+#     사용중인 마이카테고리 전체 목록 조회 / leafCode로 최하위 카테고리 확인
 # ─────────────────────────────────────────────────────────────
 def test_category_all():
     url = f"{SABANGNET_API_BASE}/category"
@@ -178,7 +229,11 @@ def test_category_all():
 
 
 # ─────────────────────────────────────────────────────────────
-# 11. 마이카테고리 등록&수정  POST /gw/v3/category
+# 11. 마이카테고리 등록&수정  POST /v3/sb/category   (operationId: saveMyCategories_1)
+#     요청 본문 : SbGwApiSaveCategoryRequest → categories: [CategoryGroup{category:[Category]}]
+#     규칙      : 최대 4레벨(level 1~4), level 순서대로 입력(상위 레벨 함께 포함)
+#                 카테고리코드는 영문·숫자만, 동일 코드 존재 시 수정/없으면 등록
+#     응답      : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_category_save():
     url = f"{SABANGNET_API_BASE}/category"
@@ -188,7 +243,9 @@ def test_category_save():
 
 
 # ─────────────────────────────────────────────────────────────
-# 12. 마이카테고리 목록 조회  GET /gw/v3/category/{lCategoryCode}
+# 12. 마이카테고리 목록 조회  GET /v3/sb/category/{lCategoryCode}
+#     (operationId: getMyCategoriesByCode_1)
+#     lCategoryCode(path) : 대카테고리 코드 (예: "01")
 # ─────────────────────────────────────────────────────────────
 def test_category_by_code():
     l_code = CATEGORY_BY_CODE_PARAMS["lCategoryCode"]
@@ -199,7 +256,10 @@ def test_category_by_code():
 
 
 # ─────────────────────────────────────────────────────────────
-# 13. 클레임 목록 조회  GET /gw/v3/claim
+# 13. 클레임 목록 조회  GET /v3/sb/claim   (operationId: searchClaims_1)
+#     요청 본문 : SbGwApiClaim.Request
+#     필수값    : startDate, endDate(8 또는 14자리), responseItems, page(>=1), perPage(50~500)
+#     조회기간  : 최대 180일(6개월)
 # ─────────────────────────────────────────────────────────────
 def test_claim_search():
     url = f"{SABANGNET_API_BASE}/claim"
@@ -209,7 +269,12 @@ def test_claim_search():
 
 
 # ─────────────────────────────────────────────────────────────
-# 14. 채널별 상품 등록&수정  POST /gw/v3/channels-product
+# 14. 채널별 상품 등록&수정  POST /v3/sb/channels-product
+#     (operationId: updateMallsProduct_1)
+#     요청 본문 : SbGwApiChannelsProductRequest → products: [ProductData]
+#     ProductData 필수 : customProductCode, shopCode
+#     쇼핑몰별 판매가·상품명·상세설명·재고비율·인증정보 등 등록/수정
+#     응답      : 전체성공 200 / 부분성공 206
 # ─────────────────────────────────────────────────────────────
 def test_channel_product():
     url = f"{SABANGNET_API_BASE}/channels-product"
