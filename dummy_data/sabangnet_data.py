@@ -72,7 +72,7 @@ PRODUCT_UPSERT_REQUEST = {
                         "stockQuantity": 50,
                         "safetyStockQuantity": 5,
                         "barcode": "8801234567890",
-                        "optionSupplyStatusCode": "SALE",   # SALE | SOLDOUT | HIDDEN
+                        "optionSupplyStatusCode": "SALE",   # SALE | SOLD_OUT | NOT_USE
                     },
                     {
                         "optionName": "색상",
@@ -133,16 +133,16 @@ WAYBILL_SAVE_REQUEST = {
 # 6. 주문
 # ──────────────────────────────────────────────────────────────
 ORDER_SEARCH_REQUEST = {
-    "startDate": int(DATE_START_8),
-    "endDate": int(DATE_END_8),
+    "startDate": DATE_START_8,          # string (yyyyMMdd 또는 yyyyMMddHHmmss)
+    "endDate": DATE_END_8,              # string
     "dateSearchCondition": 1,           # 1: 주문일, 2: 수집일, 3: 발송처리일
     "page": 1,
-    "perPage": 100,
-    "updateOrderStsYn": "N",            # N: 상태변경 없음 | Y: 신규→수집확인으로 변경
+    "perPage": 100,                     # 50 ~ 1000
+    "updateOrderStsYn": "N",            # N: 상태변경 없음 | Y: 신규→주문확인으로 변경
     "orderStatusList": ["001", "002"],  # 001: 신규주문, 002: 주문확인
-    "responseItems": [
+    "responseItems": [                  # 명세 응답 항목 코드표 기준
         "SB_ORD_NO", "SHOP_ORD_NO", "ORDER_STATUS", "RECEIVER_NM",
-        "PROD_NM", "OPTION_NM", "QTY", "SHIP_AMT",
+        "CM_PRD_NM", "CM_SKU_NM", "ORD_CNT", "CT_DELIVERY_COST",
     ],
 }
 
@@ -156,17 +156,17 @@ ADDITIONAL_PRODUCT_REQUEST = {
             "shopCode": "shop0001",
             "groupCode": "G001",
             "groupName": "소이캔들세트",
-            "groupType": "G",               # G: 그룹 | S: 단품
-            "salesType": "CONSIGNMENT",     # CONSIGNMENT | DIRECT
-            "deliveryType": "SELF_COMPANY",
-            "register": True,
-            "modify": False,
+            "groupType": "G",               # G | M | null
+            "salesType": "CONSIGNMENT",     # CONSIGNMENT | PURCHASE | ETC
+            "deliveryType": "SELF_COMPANY", # SELF_COMPANY | OTHER_COMPANY
+            "supplierId": "SUP001",         # 매입처ID (선택)
             "comment": "프리미엄 소이캔들 추가상품 그룹",
             "groupInfoList": [
                 {
                     "sbPrdSkuCode": "100001-0001",
                     "addProductOptionName": "바닐라향 소이캔들",
                     "salesPrice": 15000,
+                    # READY | SALE | TEMP_SOLD_OUT | SOLD_OUT | NOT_USE
                     "productSupplyStatusCode": "SALE",
                 }
             ],
@@ -197,11 +197,11 @@ CATEGORY_BY_CODE_PARAMS = {
 # 9. 클레임
 # ──────────────────────────────────────────────────────────────
 CLAIM_SEARCH_REQUEST = {
-    "startDate": int(DATE_START_8),
-    "endDate": int(DATE_END_8),
+    "startDate": DATE_START_8,          # string (yyyyMMdd 또는 yyyyMMddHHmmss)
+    "endDate": DATE_END_8,              # string
     "page": 1,
-    "perPage": 100,
-    "responseItems": ["SB_ORD_NO", "SHOP_ORD_NO", "CLAIM_TEXT", "CLAIM_STATUS"],
+    "perPage": 100,                     # 50 ~ 500
+    "responseItems": ["SB_ORD_NO", "SHOP_ORD_NO", "CLAIM_TEXT", "CLAIM_STS_DIV_CD"],
 }
 
 # ──────────────────────────────────────────────────────────────
