@@ -7,7 +7,7 @@
  상품     | 판매상품 조회(벌크)            | GET    | /v3/product/sales_products
  재고     | 재고조회(단일)                 | GET    | /v3/inventory/stock/{shipping_product_id}
  재고     | 재고조회(벌크)                 | GET    | /v3/inventory/stocks
- 재고     | 로케이션 재고조회(다중상품)     | POST   | /v3/inventory/stock/locations
+ 재고     | 로케이션 재고조회(다중상품)     | GET    | /v3/inventory/stock/locations
  재고     | 유통기한별 재고조회             | GET    | /v3/inventory/stock_expire
  입고     | 입고예정 등록(단일)             | POST   | /v3/inventory/receiving_plan
  입고     | 입고예정 조회(벌크)             | GET    | /v3/inventory/receiving_plans
@@ -50,7 +50,7 @@ from logger import setup_logging, log_success, log_fail
 from dummy_data.fulfillment_data import (
     SHIPPING_PRODUCT_LIST_PARAMS, SALES_PRODUCT_LIST_PARAMS,
     STOCK_GET_PATH_PARAM, STOCK_LIST_PARAMS,
-    STOCK_LOCATION_BULK_BODY, STOCK_EXPIRE_PARAMS,
+    STOCK_LOCATION_BULK_PARAMS, STOCK_EXPIRE_PARAMS,
     RECEIVING_PLAN_CREATE_BODY, RECEIVING_PLAN_LIST_PARAMS,
     RECEIVING_PLAN_RESULT_PATH_PARAM, RECEIVING_WORK_LIST_PARAMS,
     ORDER_CREATE_BODY, ORDER_BULK_CREATE_BODY, ORDER_LIST_PARAMS,
@@ -125,8 +125,8 @@ def test_stock_list():
 # ─────────────────────────────────────────────────────────────
 def test_stock_location_bulk():
     url = f"{FULFILLMENT_API_BASE}/inventory/stock/locations"
-    resp = requests.post(url, json=STOCK_LOCATION_BULK_BODY, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
-    _print_result("로케이션 재고조회(다중상품)", resp, req_body=STOCK_LOCATION_BULK_BODY)
+    resp = requests.get(url, params=STOCK_LOCATION_BULK_PARAMS, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    _print_result("로케이션 재고조회(다중상품)", resp, req_body=STOCK_LOCATION_BULK_PARAMS)
     return resp
 
 
