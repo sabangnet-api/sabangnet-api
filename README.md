@@ -7,6 +7,13 @@
 | **사방넷(Sabangnet) API** | 주문·상품·운송장·카테고리 등 쇼핑몰 관리 API | 14종 |
 | **창고관리(Fulfillment) API** | 재고·입고·발주·출고·반품 등 풀필먼트 센터 연동 API | 20종 |
 
+두 API는 **동일 호스트**를 공유하며 경로 접두사로 구분됩니다.
+
+| 구분 | 경로 접두사 |
+|------|------------|
+| 사방넷(주문관리) API | `/v3/sb/**` |
+| 창고관리(풀필먼트) API | `/v3/sbf/**` |
+
 ---
 
 ## 요구사항
@@ -37,7 +44,7 @@ cp .env.example .env
 |------|------|-----------|
 | `CLIENT_ID` | 앱 Client ID | 개발자센터 > 앱 관리 > 앱 상세 |
 | `SECRET_KEY` | bcrypt 형식 SecretKey (`$2a$10$...` 형태) | 개발자센터 > 앱 관리 > 앱 상세 |
-| `SVC_ACNT_ID` | 서비스 계정 ID | 개발자센터 > 서비스 계정 관리 |
+| `SVC_ACNT_ID` | 호출 대상 고객사의 **서비스코드**(사방넷 계정 코드, 예: `mw000001`) — 요청 헤더 `X-Svc-Acnt-Id` | 개발자센터 > 앱 관리 > 앱 상세 > 사용 고객사 |
 | `CLIENT_TYPE` | 앱 유형 (`SB_APP` 고정) | — |
 
 > **BEARER_TOKEN** 값을 직접 입력하면 토큰 발급 과정을 건너뜁니다. (선택 사항)
@@ -102,26 +109,26 @@ python fulfillment/test_fulfillment_api.py --list   # 테스트 목록 확인
 
 | # | 카테고리 | API명 | 메서드 | 엔드포인트 |
 |---|---------|-------|--------|-----------|
-| 1 | 상품 | 출고상품 조회(벌크) | GET | `/v3/product/shipping_products` |
-| 2 | 상품 | 판매상품 조회(벌크) | GET | `/v3/product/sales_products` |
-| 3 | 재고 | 재고조회(단일) | GET | `/v3/inventory/stock/{id}` |
-| 4 | 재고 | 재고조회(벌크) | GET | `/v3/inventory/stocks` |
-| 5 | 재고 | 로케이션 재고조회(다중상품) | POST | `/v3/inventory/stock/locations` |
-| 6 | 재고 | 유통기한별 재고조회 | GET | `/v3/inventory/stock_expire` |
-| 7 | 입고 | 입고예정 등록(단일) | POST | `/v3/inventory/receiving_plan` |
-| 8 | 입고 | 입고예정 조회(벌크) | GET | `/v3/inventory/receiving_plans` |
-| 9 | 입고 | 예정대비입고현황 조회 | GET | `/v3/inventory/receiving_plan_result/{id}` |
-| 10 | 입고 | 입고작업내역 조회(벌크) | GET | `/v3/inventory/receiving_works` |
-| 11 | 발주 | 발주 등록(단일) | POST | `/v3/request/order` |
-| 12 | 발주 | 발주 등록(벌크) | POST | `/v3/request/orders` |
-| 13 | 발주 | 발주 조회(벌크) | GET | `/v3/request/orders` |
-| 14 | 출고 | 출고 조회(벌크) | GET | `/v3/releases` |
-| 15 | 출고 | 출고대상상품 조회(벌크) | GET | `/v3/release/items` |
-| 16 | 출고 | 출고대상상품재고할당 조회(벌크) | GET | `/v3/release/item_stocks` |
-| 17 | 출고 | 출고회차 조회(벌크) | GET | `/v3/release/shipping_work` |
-| 18 | 출고 | 운송장 일반 조회(벌크) | GET | `/v3/release/shipping_codes` |
-| 19 | 반품 | 반품 조회(벌크) | GET | `/v3/release_return/searchs` |
-| 20 | 관리 | 로케이션 조회(벌크) | GET | `/v3/locations` |
+| 1 | 상품 | 출고상품 조회(벌크) | GET | `/v3/sbf/product/shipping_products` |
+| 2 | 상품 | 판매상품 조회(벌크) | GET | `/v3/sbf/product/sales_products` |
+| 3 | 재고 | 재고조회(단일) | GET | `/v3/sbf/inventory/stock/{id}` |
+| 4 | 재고 | 재고조회(벌크) | GET | `/v3/sbf/inventory/stocks` |
+| 5 | 재고 | 로케이션 재고조회(다중상품) | POST | `/v3/sbf/inventory/stock/locations` |
+| 6 | 재고 | 유통기한별 재고조회 | GET | `/v3/sbf/inventory/stock_expire` |
+| 7 | 입고 | 입고예정 등록(단일) | POST | `/v3/sbf/inventory/receiving_plan` |
+| 8 | 입고 | 입고예정 조회(벌크) | GET | `/v3/sbf/inventory/receiving_plans` |
+| 9 | 입고 | 예정대비입고현황 조회 | GET | `/v3/sbf/inventory/receiving_plan_result/{id}` |
+| 10 | 입고 | 입고작업내역 조회(벌크) | GET | `/v3/sbf/inventory/receiving_works` |
+| 11 | 발주 | 발주 등록(단일) | POST | `/v3/sbf/request/order` |
+| 12 | 발주 | 발주 등록(벌크) | POST | `/v3/sbf/request/orders` |
+| 13 | 발주 | 발주 조회(벌크) | GET | `/v3/sbf/request/orders` |
+| 14 | 출고 | 출고 조회(벌크) | GET | `/v3/sbf/releases` |
+| 15 | 출고 | 출고대상상품 조회(벌크) | GET | `/v3/sbf/release/items` |
+| 16 | 출고 | 출고대상상품재고할당 조회(벌크) | GET | `/v3/sbf/release/item_stocks` |
+| 17 | 출고 | 출고회차 조회(벌크) | GET | `/v3/sbf/release/shipping_work` |
+| 18 | 출고 | 운송장 일반 조회(벌크) | GET | `/v3/sbf/release/shipping_codes` |
+| 19 | 반품 | 반품 조회(벌크) | GET | `/v3/sbf/release_return/searchs` |
+| 20 | 관리 | 로케이션 조회(벌크) | GET | `/v3/sbf/locations` |
 
 ---
 
@@ -141,13 +148,21 @@ python fulfillment/test_fulfillment_api.py --list   # 테스트 목록 확인
 **Client Credentials + bcrypt secretSign** 방식을 사용합니다.
 
 ```
-1. timestamp  = 현재시각(밀리초)
-2. data       = "{CLIENT_ID}_{timestamp}"
+1. timestamp  = 현재시각(밀리초, Unix milliseconds)
+2. data       = "{CLIENT_ID}_{timestamp}"           # {clientCd}_{timestamp}
 3. secretSign = Base64( bcrypt.hashpw(data, SECRET_KEY) )
-4. POST /oauth2/token  →  access_token 획득
+4. POST /oauth2/token  (application/x-www-form-urlencoded)
+     grant_type=client_credentials
+     clientType={CLIENT_TYPE}   # SB_APP
+     clientCd={CLIENT_ID}
+     timestamp={timestamp}
+     secretSign={secretSign}
+   →  access_token 획득
 5. API 요청 헤더: Authorization: Bearer {token}
                   X-Svc-Acnt-Id: {SVC_ACNT_ID}
 ```
+
+> 발급된 JWT(RS256)는 기본 **3시간(`expires_in` 10800초)** 유효합니다. 별도 refresh 엔드포인트는 없으며, 남은 시간이 30분 미만일 때 동일한 토큰 발급 요청을 다시 보내면 신규 토큰이 추가 발급됩니다.
 
 상세 구현은 [`auth.py`](auth.py)를 참고하세요.
 
@@ -181,6 +196,11 @@ sample-code/
 | `401 Unauthorized` | CLIENT_ID 또는 SECRET_KEY 불일치 | 개발자센터에서 최신 값 재복사 후 `.env` 업데이트 |
 | `AUTH_001` | CLIENT_ID가 등록되지 않음 | 개발자센터 앱 활성 상태 확인 |
 | `AUTH_003` | secretSign 검증 실패 | SECRET_KEY 재확인 (`$2a$10$...` 29자 형식) |
-| `AUTH_006` | 타임스탬프 만료 (5분 초과) | 시스템 시간 동기화 확인 (`date` 명령) |
+| `AUTH_006` | 타임스탬프 만료 (허용 오차 5분 30초 초과) | 시스템 시간 동기화(NTP) 확인 (`date` 명령) |
+| `GW_AUTH_003` | JWT 토큰 만료 | 토큰 재발급 후 재시도 |
+| `GW_AUTH_009` | 대상 고객사와 연동 관계 없음 | `X-Svc-Acnt-Id`(서비스코드) 및 앱 상세 > 사용 고객사 연동 상태 확인 |
+| `GW_RATE_001` (429) | 요청량 제한(TPS) 초과 | 응답 헤더 `X-RateLimit-Reset` 시각까지 대기 후 재시도 |
 | `SSLError: CERTIFICATE_VERIFY_FAILED` | Self-signed 인증서 | `.env`에 `VERIFY_SSL=false` 설정 |
 | `ValueError: SECRET_KEY 형식 오류` | `.env.example` 기본값 그대로 사용 중 | `.env`에 실제 발급 값 입력 |
+
+> 모든 에러 응답은 공통 포맷 `{ "code", "message", "timestamp", "status", "path" }` 로 반환됩니다. `code` 필드로 원인을 식별하세요.

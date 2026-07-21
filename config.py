@@ -31,9 +31,11 @@ SVC_ACNT_ID = os.getenv("SVC_ACNT_ID", "test_seller001")
 # ── 직접 Bearer Token 지정 (설정 시 토큰 발급 과정 생략) ───────
 BEARER_TOKEN = os.getenv("BEARER_TOKEN", "")
 
-# ── 풀필먼트 API ──────────────────────────────────────────────
+# ── 풀필먼트(창고관리) API ────────────────────────────────────
+# 개발자센터 가이드 기준: 창고관리 API는 주문관리와 동일 호스트를 공유하며
+# 경로 접두사 /v3/sbf/** 로 구분됩니다. (주문관리=/v3/sb, 창고관리=/v3/sbf)
 FULFILLMENT_API_BASE = os.getenv(
-    "FULFILLMENT_API_BASE", "https://napi.sbfulfillment.co.kr/v3"
+    "FULFILLMENT_API_BASE", f"{SABANGNET_API_SERVER}/v3/sbf"
 )
 
 TIMEOUT = 30

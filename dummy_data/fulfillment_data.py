@@ -4,22 +4,22 @@
 # 1. 재고
 # ──────────────────────────────────────────────────────────────
 
-# #1 재고조회(단일) — GET /v3/inventory/stock/{id}
+# #1 재고조회(단일) — GET /v3/sbf/inventory/stock/{id}
 STOCK_GET_PATH_PARAM = 10
 
-# #2 재고조회(벌크) — GET /v3/inventory/stocks
+# #2 재고조회(벌크) — GET /v3/sbf/inventory/stocks
 STOCK_LIST_PARAMS = {
     "shipping_product_ids": "10,20",
     "page": 1,
 }
 
-# #3 유통기한별 재고조회(벌크) — GET /v3/inventory/stock_expire
+# #3 유통기한별 재고조회(벌크) — GET /v3/sbf/inventory/stock_expire
 STOCK_EXPIRE_PARAMS = {
     "shipping_product_ids": [11, 10],
     "page": 1,
 }
 
-# #4 로케이션 재고조회(다중상품) — GET /v3/inventory/stock/locations
+# #4 로케이션 재고조회(다중상품) — GET /v3/sbf/inventory/stock/locations
 STOCK_LOCATION_BULK_PARAMS = {
     "loc_type": 2,
     "location_id": 2,
@@ -30,7 +30,7 @@ STOCK_LOCATION_BULK_PARAMS = {
 # 2. 입고
 # ──────────────────────────────────────────────────────────────
 
-# #5 입고예정 등록(단일) — POST /v3/inventory/receiving_plan
+# #5 입고예정 등록(단일) — POST /v3/sbf/inventory/receiving_plan
 RECEIVING_PLAN_CREATE_BODY = {
     "receiving_plan_code": "260518-03",
     "plan_date": "20260511",
@@ -54,7 +54,7 @@ RECEIVING_PLAN_CREATE_BODY = {
     ],
 }
 
-# #6 입고예정 조회(벌크) — GET /v3/inventory/receiving_plans
+# #6 입고예정 조회(벌크) — GET /v3/sbf/inventory/receiving_plans
 RECEIVING_PLAN_LIST_PARAMS = {
     "receiving_plan_code": "260518-03",
     "plan_date": "20260511",
@@ -62,10 +62,10 @@ RECEIVING_PLAN_LIST_PARAMS = {
     "page": 1,
 }
 
-# #7 예정대비입고현황 조회(단일) — GET /v3/inventory/receiving_plan_result/{id}
+# #7 예정대비입고현황 조회(단일) — GET /v3/sbf/inventory/receiving_plan_result/{id}
 RECEIVING_PLAN_RESULT_PATH_PARAM = 16
 
-# #8 입고작업내역 조회(벌크) — GET /v3/inventory/receiving_works
+# #8 입고작업내역 조회(벌크) — GET /v3/sbf/inventory/receiving_works
 RECEIVING_WORK_LIST_PARAMS = {
     "start_dt": "20260506",
     "end_dt": "20260506",
@@ -79,7 +79,7 @@ RECEIVING_WORK_LIST_PARAMS = {
 # 3. 출고
 # ──────────────────────────────────────────────────────────────
 
-# #9 출고 조회(벌크) — GET /v3/releases
+# #9 출고 조회(벌크) — GET /v3/sbf/releases
 RELEASE_LIST_PARAMS = {
     "release_ids": 14,
     "release_codes": "R20260506-00001",
@@ -92,27 +92,27 @@ RELEASE_LIST_PARAMS = {
     "page": 1,
 }
 
-# #10 출고대상상품 조회(벌크) — GET /v3/release/items
+# #10 출고대상상품 조회(벌크) — GET /v3/sbf/release/items
 RELEASE_ITEM_LIST_PARAMS = {
     "shipping_order_info_id": 9,
     "release_ids": 18,
     "release_codes": ["R2026050600004", "R20260506-00005"],
 }
 
-# #11 출고대상상품재고할당 조회(벌크) — GET /v3/release/item_stocks
+# #11 출고대상상품재고할당 조회(벌크) — GET /v3/sbf/release/item_stocks
 RELEASE_ITEM_STOCK_LIST_PARAMS = {
     "shipping_order_info_id": 11,
     "release_codes": "R20260506-00007",
     "release_ids": 20,
 }
 
-# #12 출고회차 조회 — GET /v3/release/shipping_work
+# #12 출고회차 조회 — GET /v3/sbf/release/shipping_work
 RELEASE_SHIPPING_WORK_LIST_PARAMS = {
     "order_date": "20260506",
     "page": 1,
 }
 
-# #13 운송장 일반 조회(벌크) — GET /v3/release/shipping_codes
+# #13 운송장 일반 조회(벌크) — GET /v3/sbf/release/shipping_codes
 SHIPPING_CODE_LIST_PARAMS = {
     "request_shipping_dt": "20260506",
     "company_order_code": "A-20260430",
@@ -127,7 +127,7 @@ SHIPPING_CODE_LIST_PARAMS = {
 # 4. 반품
 # ──────────────────────────────────────────────────────────────
 
-# #14 반품 조회(벌크) — GET /v3/release_return/searchs
+# #14 반품 조회(벌크) — GET /v3/sbf/release_return/searchs
 RETURN_LIST_PARAMS = {
     "start_request_dt": "20260502",
     "end_request_dt": "20260530",
@@ -142,7 +142,7 @@ RETURN_LIST_PARAMS = {
 # 5. 발주
 # ──────────────────────────────────────────────────────────────
 
-# #15 발주 등록(단일) — POST /v3/request/order
+# #15 발주 등록(단일) — POST /v3/sbf/request/order
 ORDER_CREATE_BODY = {
     "company_order_code": "A-20260507",
     "shipping_method_id": 1,
@@ -179,7 +179,7 @@ ORDER_CREATE_BODY = {
     ],
 }
 
-# #16 발주 등록(벌크) — POST /v3/request/orders
+# #16 발주 등록(벌크) — POST /v3/sbf/request/orders
 ORDER_BULK_CREATE_BODY = {
     "request_data_list": [
         {
@@ -255,7 +255,7 @@ ORDER_BULK_CREATE_BODY = {
     ],
 }
 
-# #17 발주 조회(벌크) — GET /v3/request/orders
+# #17 발주 조회(벌크) — GET /v3/sbf/request/orders
 ORDER_LIST_PARAMS = {
     "order_code": "O20260506-00012",
     "company_order_codes": "A-20260430",
@@ -271,7 +271,7 @@ ORDER_LIST_PARAMS = {
 # 6. 상품
 # ──────────────────────────────────────────────────────────────
 
-# #18 출고상품 조회(벌크) — GET /v3/product/shipping_products
+# #18 출고상품 조회(벌크) — GET /v3/sbf/product/shipping_products
 SHIPPING_PRODUCT_LIST_PARAMS = {
     "product_code": "FR-106",
     "product_name": "냉동",
@@ -280,7 +280,7 @@ SHIPPING_PRODUCT_LIST_PARAMS = {
     "page": 1,
 }
 
-# #19 판매상품 조회(벌크) — GET /v3/product/sales_products
+# #19 판매상품 조회(벌크) — GET /v3/sbf/product/sales_products
 SALES_PRODUCT_LIST_PARAMS = {
     "product_name": "냉동",
     "sales_product_code": "FR-106",
@@ -293,7 +293,7 @@ SALES_PRODUCT_LIST_PARAMS = {
 # 7. 관리 (로케이션)
 # ──────────────────────────────────────────────────────────────
 
-# #20 로케이션 정보 조회(벌크) — GET /v3/locations
+# #20 로케이션 정보 조회(벌크) — GET /v3/sbf/locations
 LOCATION_LIST_PARAMS = {
     "location_ids": [19, 20],
     "loc_type": 2,
