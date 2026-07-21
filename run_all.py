@@ -1,5 +1,5 @@
 """
-사방넷 API + 풀필먼트 API 전체 검증 실행 (총 34종)
+사방넷 API + 풀필먼트 API 전체 검증 실행 (총 37종)
 
 사용법:
     cd SB-DC/sample-code
@@ -54,7 +54,7 @@ def main():
         default="all",
         help=(
             "실행할 API 스위트 선택 (기본값: all)\n"
-            "  sabangnet  : 사방넷 주문·상품·운송장 관리 API (14종)\n"
+            "  sabangnet  : 사방넷 주문·상품·운송장 관리 API (17종)\n"
             "  fulfillment: 창고관리(풀필먼트) 재고·입출고·반품 API (20종)\n"
             "  all        : 전체 실행"
         ),

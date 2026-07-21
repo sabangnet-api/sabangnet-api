@@ -3,32 +3,33 @@
 ─────────────────────────────────────────────────────────────────────────
  카테고리 | API명                        | 메서드 | 엔드포인트
 ─────────────────────────────────────────────────────────────────────────
- 상품     | 출고상품 조회(벌크)            | GET    | /v3/product/shipping_products
- 상품     | 판매상품 조회(벌크)            | GET    | /v3/product/sales_products
- 재고     | 재고조회(단일)                 | GET    | /v3/inventory/stock/{shipping_product_id}
- 재고     | 재고조회(벌크)                 | GET    | /v3/inventory/stocks
- 재고     | 로케이션 재고조회(다중상품)     | GET    | /v3/inventory/stock/locations
- 재고     | 유통기한별 재고조회             | GET    | /v3/inventory/stock_expire
- 입고     | 입고예정 등록(단일)             | POST   | /v3/inventory/receiving_plan
- 입고     | 입고예정 조회(벌크)             | GET    | /v3/inventory/receiving_plans
- 입고     | 예정대비입고현황 조회           | GET    | /v3/inventory/receiving_plan_result/{id}
- 입고     | 입고작업내역 조회(벌크)         | GET    | /v3/inventory/receiving_works
- 발주     | 발주 등록(단일)                 | POST   | /v3/request/order
- 발주     | 발주 등록(벌크)                 | POST   | /v3/request/orders
- 발주     | 발주 조회(벌크)                 | GET    | /v3/request/orders
- 출고     | 출고 조회(벌크)                 | GET    | /v3/releases
- 출고     | 출고대상상품 조회(벌크)         | GET    | /v3/release/items
- 출고     | 출고대상상품재고할당 조회(벌크) | GET    | /v3/release/item_stocks
- 출고     | 출고회차 조회(벌크)             | GET    | /v3/release/shipping_work
- 출고     | 운송장 일반 조회(벌크)          | GET    | /v3/release/shipping_codes
- 반품     | 반품 조회(벌크)                 | GET    | /v3/release_return/searchs
- 관리     | 로케이션 조회(벌크)             | GET    | /v3/locations
+ 상품     | 출고상품 조회(벌크)            | GET    | /v3/sbf/product/shipping_products
+ 상품     | 판매상품 조회(벌크)            | GET    | /v3/sbf/product/sales_products
+ 재고     | 재고조회(단일)                 | GET    | /v3/sbf/inventory/stock/{shipping_product_id}
+ 재고     | 재고조회(벌크)                 | GET    | /v3/sbf/inventory/stocks
+ 재고     | 로케이션 재고조회(다중상품)     | GET    | /v3/sbf/inventory/stock/locations
+ 재고     | 유통기한별 재고조회             | GET    | /v3/sbf/inventory/stock_expire
+ 입고     | 입고예정 등록(단일)             | POST   | /v3/sbf/inventory/receiving_plan
+ 입고     | 입고예정 조회(벌크)             | GET    | /v3/sbf/inventory/receiving_plans
+ 입고     | 예정대비입고현황 조회           | GET    | /v3/sbf/inventory/receiving_plan_result/{id}
+ 입고     | 입고작업내역 조회(벌크)         | GET    | /v3/sbf/inventory/receiving_works
+ 발주     | 발주 등록(단일)                 | POST   | /v3/sbf/request/order
+ 발주     | 발주 등록(벌크)                 | POST   | /v3/sbf/request/orders
+ 발주     | 발주 조회(벌크)                 | GET    | /v3/sbf/request/orders
+ 출고     | 출고 조회(벌크)                 | GET    | /v3/sbf/releases
+ 출고     | 출고대상상품 조회(벌크)         | GET    | /v3/sbf/release/items
+ 출고     | 출고대상상품재고할당 조회(벌크) | GET    | /v3/sbf/release/item_stocks
+ 출고     | 출고회차 조회(벌크)             | GET    | /v3/sbf/release/shipping_work
+ 출고     | 운송장 일반 조회(벌크)          | GET    | /v3/sbf/release/shipping_codes
+ 반품     | 반품 조회(벌크)                 | GET    | /v3/sbf/release_return/searchs
+ 관리     | 로케이션 조회(벌크)             | GET    | /v3/sbf/locations
 ─────────────────────────────────────────────────────────────────────────
 
 실행:
     # 환경변수 설정 (.env 파일 또는 직접 export)
-    export FULFILLMENT_API_BASE=https://napi.sbfulfillment.co.kr/v3
-    export BEARER_TOKEN=<발급된 풀필먼트 토큰>
+    # 창고관리 API는 주문관리와 동일 호스트를 공유하며 /v3/sbf/** 접두사로 구분됩니다.
+    export FULFILLMENT_API_BASE=https://dev-api.fbsabangnet.co.kr/v3/sbf
+    export BEARER_TOKEN=<발급된 토큰>
 
     # 실행
     cd SB-DC/sample-code
@@ -81,7 +82,7 @@ def _print_result(name: str, resp: requests.Response, req_body=None, show_body: 
 
 
 # ─────────────────────────────────────────────────────────────
-# 1. 출고상품 조회(벌크)  GET /v3/product/shipping_products
+# 1. 출고상품 조회(벌크)  GET /v3/sbf/product/shipping_products
 # ─────────────────────────────────────────────────────────────
 def test_shipping_product_list():
     url = f"{FULFILLMENT_API_BASE}/product/shipping_products"
@@ -91,7 +92,7 @@ def test_shipping_product_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 2. 판매상품 조회(벌크)  GET /v3/product/sales_products
+# 2. 판매상품 조회(벌크)  GET /v3/sbf/product/sales_products
 # ─────────────────────────────────────────────────────────────
 def test_sales_product_list():
     url = f"{FULFILLMENT_API_BASE}/product/sales_products"
@@ -101,7 +102,7 @@ def test_sales_product_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 3. 재고조회(단일)  GET /v3/inventory/stock/{shipping_product_id}
+# 3. 재고조회(단일)  GET /v3/sbf/inventory/stock/{shipping_product_id}
 # ─────────────────────────────────────────────────────────────
 def test_stock_single():
     url = f"{FULFILLMENT_API_BASE}/inventory/stock/{STOCK_GET_PATH_PARAM}"
@@ -111,7 +112,7 @@ def test_stock_single():
 
 
 # ─────────────────────────────────────────────────────────────
-# 4. 재고조회(벌크)  GET /v3/inventory/stocks
+# 4. 재고조회(벌크)  GET /v3/sbf/inventory/stocks
 # ─────────────────────────────────────────────────────────────
 def test_stock_list():
     url = f"{FULFILLMENT_API_BASE}/inventory/stocks"
@@ -121,7 +122,7 @@ def test_stock_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 5. 로케이션 재고조회(다중상품)  POST /v3/inventory/stock/locations
+# 5. 로케이션 재고조회(다중상품)  POST /v3/sbf/inventory/stock/locations
 # ─────────────────────────────────────────────────────────────
 def test_stock_location_bulk():
     url = f"{FULFILLMENT_API_BASE}/inventory/stock/locations"
@@ -131,7 +132,7 @@ def test_stock_location_bulk():
 
 
 # ─────────────────────────────────────────────────────────────
-# 6. 유통기한별 재고조회  GET /v3/inventory/stock_expire
+# 6. 유통기한별 재고조회  GET /v3/sbf/inventory/stock_expire
 # ─────────────────────────────────────────────────────────────
 def test_stock_expire():
     url = f"{FULFILLMENT_API_BASE}/inventory/stock_expire"
@@ -141,7 +142,7 @@ def test_stock_expire():
 
 
 # ─────────────────────────────────────────────────────────────
-# 7. 입고예정 등록(단일)  POST /v3/inventory/receiving_plan
+# 7. 입고예정 등록(단일)  POST /v3/sbf/inventory/receiving_plan
 # ─────────────────────────────────────────────────────────────
 def test_receiving_plan_create():
     url = f"{FULFILLMENT_API_BASE}/inventory/receiving_plan"
@@ -151,7 +152,7 @@ def test_receiving_plan_create():
 
 
 # ─────────────────────────────────────────────────────────────
-# 8. 입고예정 조회(벌크)  GET /v3/inventory/receiving_plans
+# 8. 입고예정 조회(벌크)  GET /v3/sbf/inventory/receiving_plans
 # ─────────────────────────────────────────────────────────────
 def test_receiving_plan_list():
     url = f"{FULFILLMENT_API_BASE}/inventory/receiving_plans"
@@ -161,7 +162,7 @@ def test_receiving_plan_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 9. 예정대비입고현황 조회  GET /v3/inventory/receiving_plan_result/{id}
+# 9. 예정대비입고현황 조회  GET /v3/sbf/inventory/receiving_plan_result/{id}
 # ─────────────────────────────────────────────────────────────
 def test_receiving_plan_result():
     url = f"{FULFILLMENT_API_BASE}/inventory/receiving_plan_result/{RECEIVING_PLAN_RESULT_PATH_PARAM}"
@@ -171,7 +172,7 @@ def test_receiving_plan_result():
 
 
 # ─────────────────────────────────────────────────────────────
-# 10. 입고작업내역 조회(벌크)  GET /v3/inventory/receiving_works
+# 10. 입고작업내역 조회(벌크)  GET /v3/sbf/inventory/receiving_works
 # ─────────────────────────────────────────────────────────────
 def test_receiving_work_list():
     url = f"{FULFILLMENT_API_BASE}/inventory/receiving_works"
@@ -181,7 +182,7 @@ def test_receiving_work_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 11. 발주 등록(단일)  POST /v3/request/order
+# 11. 발주 등록(단일)  POST /v3/sbf/request/order
 # ─────────────────────────────────────────────────────────────
 def test_order_create():
     url = f"{FULFILLMENT_API_BASE}/request/order"
@@ -191,7 +192,7 @@ def test_order_create():
 
 
 # ─────────────────────────────────────────────────────────────
-# 12. 발주 등록(벌크)  POST /v3/request/orders
+# 12. 발주 등록(벌크)  POST /v3/sbf/request/orders
 # ─────────────────────────────────────────────────────────────
 def test_order_bulk_create():
     url = f"{FULFILLMENT_API_BASE}/request/orders"
@@ -201,7 +202,7 @@ def test_order_bulk_create():
 
 
 # ─────────────────────────────────────────────────────────────
-# 13. 발주 조회(벌크)  GET /v3/request/orders
+# 13. 발주 조회(벌크)  GET /v3/sbf/request/orders
 # ─────────────────────────────────────────────────────────────
 def test_order_list():
     url = f"{FULFILLMENT_API_BASE}/request/orders"
@@ -211,7 +212,7 @@ def test_order_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 14. 출고 조회(벌크)  GET /v3/releases
+# 14. 출고 조회(벌크)  GET /v3/sbf/releases
 # ─────────────────────────────────────────────────────────────
 def test_release_list():
     url = f"{FULFILLMENT_API_BASE}/releases"
@@ -221,7 +222,7 @@ def test_release_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 15. 출고대상상품 조회(벌크)  GET /v3/release/items
+# 15. 출고대상상품 조회(벌크)  GET /v3/sbf/release/items
 # ─────────────────────────────────────────────────────────────
 def test_release_item_list():
     url = f"{FULFILLMENT_API_BASE}/release/items"
@@ -231,7 +232,7 @@ def test_release_item_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 16. 출고대상상품재고할당 조회(벌크)  GET /v3/release/item_stocks
+# 16. 출고대상상품재고할당 조회(벌크)  GET /v3/sbf/release/item_stocks
 # ─────────────────────────────────────────────────────────────
 def test_release_item_stock_list():
     url = f"{FULFILLMENT_API_BASE}/release/item_stocks"
@@ -241,7 +242,7 @@ def test_release_item_stock_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 17. 출고회차 조회(벌크)  GET /v3/release/shipping_work
+# 17. 출고회차 조회(벌크)  GET /v3/sbf/release/shipping_work
 # ─────────────────────────────────────────────────────────────
 def test_release_shipping_work():
     url = f"{FULFILLMENT_API_BASE}/release/shipping_work"
@@ -251,7 +252,7 @@ def test_release_shipping_work():
 
 
 # ─────────────────────────────────────────────────────────────
-# 18. 운송장 일반 조회(벌크)  GET /v3/release/shipping_codes
+# 18. 운송장 일반 조회(벌크)  GET /v3/sbf/release/shipping_codes
 # ─────────────────────────────────────────────────────────────
 def test_shipping_code_list():
     url = f"{FULFILLMENT_API_BASE}/release/shipping_codes"
@@ -261,7 +262,7 @@ def test_shipping_code_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 19. 반품 조회(벌크)  GET /v3/release_return/searchs
+# 19. 반품 조회(벌크)  GET /v3/sbf/release_return/searchs
 # ─────────────────────────────────────────────────────────────
 def test_return_list():
     url = f"{FULFILLMENT_API_BASE}/release_return/searchs"
@@ -271,7 +272,7 @@ def test_return_list():
 
 
 # ─────────────────────────────────────────────────────────────
-# 20. 로케이션 조회(벌크)  GET /v3/locations
+# 20. 로케이션 조회(벌크)  GET /v3/sbf/locations
 # ─────────────────────────────────────────────────────────────
 def test_location_list():
     url = f"{FULFILLMENT_API_BASE}/locations"
