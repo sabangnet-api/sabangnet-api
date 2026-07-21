@@ -4,7 +4,7 @@
 
 | 구분 | 설명 | API 수 |
 |------|------|--------|
-| **사방넷(Sabangnet) API** | 주문·상품·운송장·카테고리 등 쇼핑몰 관리 API | 14종 |
+| **사방넷(Sabangnet) API** | 주문·상품·운송장·카테고리 등 쇼핑몰 관리 API | 17종 |
 | **창고관리(Fulfillment) API** | 재고·입고·발주·출고·반품 등 풀필먼트 센터 연동 API | 20종 |
 
 두 API는 **동일 호스트**를 공유하며 경로 접두사로 구분됩니다.
@@ -86,24 +86,27 @@ python fulfillment/test_fulfillment_api.py --list   # 테스트 목록 확인
 
 ## API 목록
 
-### 사방넷(Sabangnet) API — 14종
+### 사방넷(Sabangnet) API — 17종
 
 | # | 카테고리 | API명 | 메서드 | 엔드포인트 |
 |---|---------|-------|--------|-----------|
-| 1 | 문의사항 | 문의사항 정보 조회 | GET | `/v3/sb/cs` |
+| 1 | 문의사항 | 문의사항 정보 조회 | POST | `/v3/sb/cs` |
 | 2 | 문의사항 | 문의사항 답변 저장 | POST | `/v3/sb/cs/answer` |
 | 3 | 상품 | 상품 조회 | GET | `/v3/sb/product` |
 | 4 | 상품 | 상품 등록&수정 | POST | `/v3/sb/product/upsert` |
 | 5 | 상품정보제공고시 | 목록 조회 | GET | `/v3/sb/product-info-notice/{noticeType}` |
 | 6 | 쇼핑몰 | 쇼핑몰 정보 조회 | GET | `/v3/sb/mall/{shopDivCode}` |
 | 7 | 운송장 | 운송장 저장/수정 | POST | `/v3/sb/waybill` |
-| 8 | 주문 | 주문 목록 조회 | GET | `/v3/sb/order` |
-| 9 | 추가상품 | 추가상품 등록&수정 | POST | `/v3/sb/additional-product` |
-| 10 | 카테고리 | 전체 마이카테고리 목록 조회 | GET | `/v3/sb/category` |
-| 11 | 카테고리 | 마이카테고리 등록&수정 | POST | `/v3/sb/category` |
-| 12 | 카테고리 | 마이카테고리 목록 조회 | GET | `/v3/sb/category/{lCategoryCode}` |
-| 13 | 클레임 | 클레임 목록 조회 | GET | `/v3/sb/claim` |
-| 14 | 판매채널별상품 | 채널별 상품 등록&수정 | POST | `/v3/sb/channels-product` |
+| 8 | 주문 | 주문 목록 조회 | POST | `/v3/sb/order` |
+| 9 | 주문 | 주문 상태변경 | POST | `/v3/sb/order-status` |
+| 10 | 추가상품 | 추가상품 등록&수정 | POST | `/v3/sb/additional-product` |
+| 11 | 카테고리 | 전체 마이카테고리 목록 조회 | GET | `/v3/sb/category` |
+| 12 | 카테고리 | 마이카테고리 등록&수정 | POST | `/v3/sb/category` |
+| 13 | 카테고리 | 마이카테고리 목록 조회 | GET | `/v3/sb/category/{lCategoryCode}` |
+| 14 | 카테고리 | 표준카테고리 목록 조회 | GET | `/v3/sb/standard-category` |
+| 15 | 카테고리 | 표준카테고리 조회(단건) | GET | `/v3/sb/standard-category/{stdCategoryCode}` |
+| 16 | 클레임 | 클레임 목록 조회 | POST | `/v3/sb/claim` |
+| 17 | 판매채널별상품 | 채널별 상품 등록&수정 | POST | `/v3/sb/channels-product` |
 
 ### 창고관리(Fulfillment) API — 20종
 
@@ -179,7 +182,7 @@ sample-code/
 ├── .env.example                    # 환경 변수 템플릿 (값 없음, 커밋됨)
 ├── .env                            # 실제 인증 정보 (커밋 금지)
 ├── sabangnet/
-│   └── test_sabangnet_api.py       # 사방넷 API 샘플 14종
+│   └── test_sabangnet_api.py       # 사방넷 API 샘플 17종
 ├── fulfillment/
 │   └── test_fulfillment_api.py     # 창고관리(풀필먼트) API 샘플 20종
 └── dummy_data/

@@ -221,3 +221,42 @@ CHANNEL_PRODUCT_REQUEST = {
         }
     ]
 }
+
+# ──────────────────────────────────────────────────────────────
+# 11. 주문 상태변경 (order-status)
+#     허용 전이/상태별 필수값은 명세 참고. 아래는 대표 전이 예시.
+#     - CANCEL_RECEIPT: cancelReasonCode 필수 (C로 시작하는 사유코드)
+#     - EXCHANGE/RETURN_RECEIPT: claimReasonCode 필수 (E/R로 시작)
+#     - EXCHANGE/RETURN_COMPLETED: warehouseCode + 입고수량(가용+불용>=1) 필수
+#     - DELIVERY_PENDING: desiredShipDate(yyyyMMdd) 필수
+# ──────────────────────────────────────────────────────────────
+ORDER_STATUS_CHANGE_REQUEST = {
+    "orders": [
+        {
+            "sbOrderNo": "20260101000001",
+            "targetStatusCode": "ORDER_CONFIRM",   # 신규주문 → 주문확인
+        },
+        {
+            "sbOrderNo": "20260101000002",
+            "targetStatusCode": "CANCEL_RECEIPT",   # 취소접수
+            "cancelReasonCode": "C001",             # 취소접수 전이 시 필수
+            "claimContent": "고객 변심으로 인한 취소",
+        },
+    ]
+}
+
+# ──────────────────────────────────────────────────────────────
+# 12. 표준카테고리 조회 (standard-category)
+# ──────────────────────────────────────────────────────────────
+STANDARD_CATEGORY_PARAMS = {
+    # 대분류 enum(미지정 시 전체): FURNITURE_INTERIOR | BOOKS | DIGITAL_APPLIANCES |
+    #   LIFE_HEALTH | SPORTS_LEISURE | FOOD | LEISURE_CONVENIENCE | BIRTH_PARENTING |
+    #   FASHION_CLOTHES | FASHION_ACCESSORIES | BEAUTY
+    "largeCategory": "FASHION_CLOTHES",
+    "page": 1,
+    "perPage": 100,
+}
+
+STANDARD_CATEGORY_BY_CODE_PARAMS = {
+    "stdCategoryCode": "S001172",   # 표준카테고리코드
+}

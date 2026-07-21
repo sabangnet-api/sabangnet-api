@@ -1,5 +1,5 @@
 """
-사방넷 주문관리 API 검증 테스트 (14종)
+사방넷 주문관리 API 검증 테스트 (17종)
 
 사방넷 OMS(주문관리시스템)의 주요 기능을 REST/JSON 으로 연동하는 API 샘플.
 모든 엔드포인트는 `/v3/sb/` 접두사를 사용합니다 (config.SABANGNET_API_BASE).
@@ -19,19 +19,22 @@
 ─────────────────────────────────────────────────────────────────────────────
  태그           | API명                    | 메서드 | 엔드포인트
 ─────────────────────────────────────────────────────────────────────────────
- 문의사항       | 문의사항 정보 조회        | GET    | /v3/sb/cs
+ 문의사항       | 문의사항 정보 조회        | POST   | /v3/sb/cs
  문의사항       | 문의사항 답변 저장        | POST   | /v3/sb/cs/answer
  상품           | 상품 조회                | GET    | /v3/sb/product
  상품           | 상품 등록&수정           | POST   | /v3/sb/product/upsert
  상품정보제공고시| 상품정보제공고시 목록 조회 | GET    | /v3/sb/product-info-notice/{noticeType}
  쇼핑몰         | 쇼핑몰 정보 조회          | GET    | /v3/sb/mall/{shopDivCode}
  운송장         | 운송장 저장/수정          | POST   | /v3/sb/waybill
- 주문           | 주문 목록 조회            | GET    | /v3/sb/order
+ 주문           | 주문 목록 조회            | POST   | /v3/sb/order
+ 주문상태변경   | 주문 상태변경             | POST   | /v3/sb/order-status
  추가상품       | 추가상품 등록&수정        | POST   | /v3/sb/additional-product
  카테고리       | 전체 마이카테고리 목록 조회 | GET    | /v3/sb/category
  카테고리       | 마이카테고리 등록&수정     | POST   | /v3/sb/category
  카테고리       | 마이카테고리 목록 조회     | GET    | /v3/sb/category/{lCategoryCode}
- 클레임         | 클레임 목록 조회          | GET    | /v3/sb/claim
+ 카테고리       | 표준카테고리 목록 조회     | GET    | /v3/sb/standard-category
+ 카테고리       | 표준카테고리 조회(단건)    | GET    | /v3/sb/standard-category/{stdCategoryCode}
+ 클레임         | 클레임 목록 조회          | POST   | /v3/sb/claim
  판매채널별 상품 | 채널별 상품 등록&수정      | POST   | /v3/sb/channels-product
 ─────────────────────────────────────────────────────────────────────────────
 
@@ -64,8 +67,10 @@ from dummy_data.sabangnet_data import (
     PRODUCT_GET_PARAMS, PRODUCT_UPSERT_REQUEST,
     PRODUCT_INFO_NOTICE_PARAMS, MALL_INFO_PARAMS,
     WAYBILL_SAVE_REQUEST, ORDER_SEARCH_REQUEST,
+    ORDER_STATUS_CHANGE_REQUEST,
     ADDITIONAL_PRODUCT_REQUEST, CATEGORY_SAVE_REQUEST,
     CATEGORY_BY_CODE_PARAMS, CLAIM_SEARCH_REQUEST,
+    STANDARD_CATEGORY_PARAMS, STANDARD_CATEGORY_BY_CODE_PARAMS,
     CHANNEL_PRODUCT_REQUEST,
 )
 
@@ -91,14 +96,14 @@ def _print_result(name: str, resp: requests.Response, req_body=None, show_body: 
 
 
 # ─────────────────────────────────────────────────────────────
-# 1. 문의사항 정보 조회  GET /v3/sb/cs   (operationId: searchCsInfo_1)
+# 1. 문의사항 정보 조회  POST /v3/sb/cs   (operationId: searchCsInfo_1)
 #    요청 본문: SbGwApiCsInfo.Request
 #    필수값  : startDate, endDate(8 또는 14자리), page(>=1), perPage(50~1000)
 #    csStatus: NEW_RECEIPT | ANSWER_SAVED | ANSWER_SENT | FORCED_CONVERSION
 # ─────────────────────────────────────────────────────────────
 def test_cs_search():
     url = f"{SABANGNET_API_BASE}/cs"
-    resp = requests.get(url, json=CS_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    resp = requests.post(url, json=CS_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
     _print_result("문의사항 정보 조회", resp, req_body=CS_SEARCH_REQUEST)
     return resp
 
@@ -186,7 +191,7 @@ def test_waybill_save():
 
 
 # ─────────────────────────────────────────────────────────────
-# 8. 주문 목록 조회  GET /v3/sb/order   (operationId: searchOrders_1)
+# 8. 주문 목록 조회  POST /v3/sb/order   (operationId: searchOrders_1)
 #    요청 본문 : SbGwApiOrderRequest
 #    필수값    : page(>=1), perPage(50~1000), responseItems
 #    주의      : 조건 충족 신규주문이 '주문확인'으로 변경됨
@@ -195,8 +200,23 @@ def test_waybill_save():
 # ─────────────────────────────────────────────────────────────
 def test_order_search():
     url = f"{SABANGNET_API_BASE}/order"
-    resp = requests.get(url, json=ORDER_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    resp = requests.post(url, json=ORDER_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
     _print_result("주문 목록 조회", resp, req_body=ORDER_SEARCH_REQUEST)
+    return resp
+
+
+# ─────────────────────────────────────────────────────────────
+# 8-1. 주문 상태변경  POST /v3/sb/order-status   (operationId: changeOrderStatus_1)
+#    요청 본문 : SbGwApiChangeOrderStatus.Request → orders: [OrderItem{sbOrderNo, targetStatusCode, ...}]
+#    특징      : 벌크 상태 전이, 현재 상태에서 허용된 전이만 성공
+#    상태별 필수: 취소접수=cancelReasonCode / 교환·반품접수=claimReasonCode
+#                교환·반품완료=warehouseCode+입고수량 / 배송보류=desiredShipDate
+#    응답      : 전체성공 200 / 부분성공 206
+# ─────────────────────────────────────────────────────────────
+def test_order_status_change():
+    url = f"{SABANGNET_API_BASE}/order-status"
+    resp = requests.post(url, json=ORDER_STATUS_CHANGE_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    _print_result("주문 상태변경", resp, req_body=ORDER_STATUS_CHANGE_REQUEST)
     return resp
 
 
@@ -256,14 +276,39 @@ def test_category_by_code():
 
 
 # ─────────────────────────────────────────────────────────────
-# 13. 클레임 목록 조회  GET /v3/sb/claim   (operationId: searchClaims_1)
+# 12-1. 표준카테고리 목록 조회  GET /v3/sb/standard-category
+#     (operationId: getStandardCategories_1)
+#     query : largeCategory(대분류 enum, 미지정 시 전체), page(1부터), perPage(기본 100)
+# ─────────────────────────────────────────────────────────────
+def test_standard_category():
+    url = f"{SABANGNET_API_BASE}/standard-category"
+    resp = requests.get(url, params=STANDARD_CATEGORY_PARAMS, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    _print_result("표준카테고리 목록 조회", resp, req_body=STANDARD_CATEGORY_PARAMS)
+    return resp
+
+
+# ─────────────────────────────────────────────────────────────
+# 12-2. 표준카테고리 조회(단건)  GET /v3/sb/standard-category/{stdCategoryCode}
+#     (operationId: getStandardCategoryByCode_1)
+#     stdCategoryCode(path) : 표준카테고리코드 (예: "S001172")
+# ─────────────────────────────────────────────────────────────
+def test_standard_category_by_code():
+    code = STANDARD_CATEGORY_BY_CODE_PARAMS["stdCategoryCode"]
+    url = f"{SABANGNET_API_BASE}/standard-category/{code}"
+    resp = requests.get(url, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    _print_result(f"표준카테고리 조회 단건 (코드: {code})", resp)
+    return resp
+
+
+# ─────────────────────────────────────────────────────────────
+# 13. 클레임 목록 조회  POST /v3/sb/claim   (operationId: searchClaims_1)
 #     요청 본문 : SbGwApiClaim.Request
 #     필수값    : startDate, endDate(8 또는 14자리), responseItems, page(>=1), perPage(50~500)
 #     조회기간  : 최대 180일(6개월)
 # ─────────────────────────────────────────────────────────────
 def test_claim_search():
     url = f"{SABANGNET_API_BASE}/claim"
-    resp = requests.get(url, json=CLAIM_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
+    resp = requests.post(url, json=CLAIM_SEARCH_REQUEST, headers=auth_headers(), timeout=TIMEOUT, verify=VERIFY_SSL)
     _print_result("클레임 목록 조회", resp, req_body=CLAIM_SEARCH_REQUEST)
     return resp
 
@@ -295,10 +340,13 @@ ALL_TESTS = {
     "mall_info":         test_mall_info,
     "waybill_save":      test_waybill_save,
     "order_search":      test_order_search,
+    "order_status":      test_order_status_change,
     "additional_product": test_additional_product,
     "category_all":      test_category_all,
     "category_save":     test_category_save,
     "category_by_code":  test_category_by_code,
+    "standard_category": test_standard_category,
+    "standard_category_by_code": test_standard_category_by_code,
     "claim_search":      test_claim_search,
     "channel_product":   test_channel_product,
 }
@@ -306,7 +354,7 @@ ALL_TESTS = {
 
 def run_all():
     print("=" * 60)
-    print("  사방넷(Sabangnet) 주문·상품 관리 API 샘플 (14종)")
+    print("  사방넷(Sabangnet) 주문·상품 관리 API 샘플 (17종)")
     print(f"  BASE URL: {SABANGNET_API_BASE}")
     print("=" * 60)
 
