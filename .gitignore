@@ -1,5 +1,7 @@
 # 인증 정보 — 절대 커밋 금지
 .env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
@@ -13,8 +15,9 @@ __pycache__/
 venv/
 env/
 
-# 로그
+# 로그 (API 응답 전문 = 개인정보 포함 가능)
 logs/
+*.log
 
 # 에디터
 .idea/

@@ -18,11 +18,14 @@
     # 풀필먼트 API만
     python run_all.py --suite fulfillment
 """
+import os
 import sys
 import argparse
 
-sys.path.insert(0, ".")
+# 작업 디렉터리가 아니라 스크립트 기준 경로를 사용 (동명 모듈 로딩 방지)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from auth import preflight
 from logger import setup_logging
 
 
@@ -46,6 +49,7 @@ def _print_summary(results: list[dict]) -> None:
 
 
 def main():
+    preflight()
     setup_logging()
     parser = argparse.ArgumentParser(description="전체 API 검증 테스트 실행")
     parser.add_argument(
