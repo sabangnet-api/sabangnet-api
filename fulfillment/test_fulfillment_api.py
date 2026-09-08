@@ -28,7 +28,8 @@
 실행:
     # 환경변수 설정 (.env 파일 또는 직접 export)
     # 창고관리 API는 주문관리와 동일 호스트를 공유하며 /v3/sbf/** 접두사로 구분됩니다.
-    export FULFILLMENT_API_BASE=https://dev-api.fbsabangnet.co.kr/v3/sbf
+    export FULFILLMENT_API_BASE=https://api.sabangnet.co.kr/v3/sbf   # 운영
+    # 샌드박스로 검증할 경우: https://sandbox.sabangnet.co.kr/v3/sbf
     export BEARER_TOKEN=<발급된 토큰>
 
     # 실행
@@ -38,15 +39,17 @@
     # 특정 테스트만
     python fulfillment/test_fulfillment_api.py --test stock_single
 """
+import os
 import sys
 import json
 import argparse
 import traceback
 import requests
 
-sys.path.insert(0, ".")
+# 작업 디렉터리가 아니라 스크립트 기준 경로를 사용 (동명 모듈 로딩 방지)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import FULFILLMENT_API_BASE, TIMEOUT, VERIFY_SSL
-from auth import auth_headers
+from auth import auth_headers, preflight
 from logger import setup_logging, log_success, log_fail
 from dummy_data.fulfillment_data import (
     SHIPPING_PRODUCT_LIST_PARAMS, SALES_PRODUCT_LIST_PARAMS,
@@ -347,6 +350,8 @@ if __name__ == "__main__":
     parser.add_argument("--list", action="store_true", help="테스트 목록 출력")
     args = parser.parse_args()
 
+    if not args.list:
+        preflight()
     setup_logging()
     if args.list:
         print("사용 가능한 테스트:")

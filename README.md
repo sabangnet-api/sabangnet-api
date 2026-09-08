@@ -16,6 +16,35 @@
 
 ---
 
+## 환경 및 도메인
+
+연동 개발자센터(앱 등록·가이드 문서)와 API 게이트웨이는 서로 다른 도메인을 사용합니다.
+
+| 용도 | 도메인 |
+|------|--------|
+| 연동 개발자센터 (앱 관리·가이드 문서) | https://developer.sabangnet.co.kr — 가이드 문서 `/docs/` |
+| API 게이트웨이 — **운영(기본값)** | `https://api.sabangnet.co.kr` |
+| API 게이트웨이 — 운영 샌드박스 | `https://sandbox.sabangnet.co.kr` |
+
+- 토큰 발급 경로는 환경과 무관하게 `POST {호스트}/oauth2/token` 입니다.
+- 이 샘플의 기본 호스트는 **운영**입니다. 상품 등록&수정·발주 등록 등 **쓰기 API가 포함**되어 있으므로,
+  기능 확인 목적이라면 `.env`의 `SABANGNET_API_SERVER`를 샌드박스로 바꾼 뒤 실행하세요.
+
+  ```bash
+  # 샌드박스로 전체 전환
+  SABANGNET_API_SERVER=https://sandbox.sabangnet.co.kr
+  SABANGNET_API_BASE=https://sandbox.sabangnet.co.kr/v3/sb
+  FULFILLMENT_API_BASE=https://sandbox.sabangnet.co.kr/v3/sbf
+  TOKEN_URL=https://sandbox.sabangnet.co.kr/oauth2/token
+  ```
+
+- 두 호스트 모두 TLS 1.3 핸드셰이크에서 사내 CA 서명 인증서를 제시하므로, `requests`(OpenSSL) 기본 신뢰 저장소로는
+  인증서 검증에 실패합니다. 그래서 `VERIFY_SSL=false`가 기본값이며, 사내 CA를 신뢰하도록 구성한 환경에서만 `true`로 올리세요.
+- OpenAPI 명세에 표기된 `/gw/v3/**`는 게이트웨이 내부 경로이며, 외부에서 호출하면 `GW_ROUTE_001`(404)이 반환됩니다.
+  실제 호출 경로는 `/v3/sb/**`, `/v3/sbf/**` 입니다.
+
+---
+
 ## 요구사항
 
 - Python 3.8 이상
@@ -38,7 +67,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-`.env` 파일을 열어 아래 값을 입력합니다.
+`.env` 파일을 열어 아래 값을 입력합니다. 발급은 [연동 개발자센터](https://developer.sabangnet.co.kr) > 앱 관리에서 진행합니다.
 
 | 항목 | 설명 | 발급 위치 |
 |------|------|-----------|
@@ -138,6 +167,7 @@ python fulfillment/test_fulfillment_api.py --list   # 테스트 목록 확인
 ## 더미 데이터 수정
 
 요청 파라미터 및 바디 예시는 `dummy_data/` 에 있습니다. 실제 연동 시 본인 계정 값으로 교체하세요.
+수취인명·연락처·주소는 모두 가공값입니다. 실제 값으로 바꾼 뒤에는 커밋하지 마세요.
 
 | 파일 | 교체 필요 항목 |
 |------|--------------|
@@ -171,6 +201,26 @@ python fulfillment/test_fulfillment_api.py --list   # 테스트 목록 확인
 
 ---
 
+## 보안 주의사항
+
+- **`.env`는 커밋하지 않습니다.** `.gitignore`에 등록돼 있으며, 권한도 소유자만 읽도록 좁히세요.
+
+  ```bash
+  chmod 600 .env
+  ```
+
+- **`CLIENT_ID`·`SECRET_KEY`·`BEARER_TOKEN`을 코드·이슈·스크린샷에 붙이지 마세요.** 특히 토큰 발급 요청의
+  `secretSign` 값은 bcrypt 출력 전체를 Base64로 인코딩한 형태라 **디코딩하면 SecretKey가 그대로 드러납니다.**
+  값이 한 번이라도 노출되면 개발자센터에서 SecretKey를 재발급하세요.
+- **`logs/` 로그에는 API 응답 전문이 남습니다.** 주문·클레임 조회 응답에는 수취인명·연락처·주소가 포함되므로,
+  외부 공유나 이슈 첨부 전에 내용을 확인하고 확인이 끝나면 삭제하세요. (로그 파일은 `0600` 권한으로 생성됩니다.)
+- **`VERIFY_SSL=false`는 임시 기본값입니다.** 게이트웨이가 TLS 1.3 핸드셰이크에서 사내 CA 인증서를 제시해
+  기본 신뢰 저장소로 검증이 되지 않아 넣은 값이며, 이 상태에서는 중간자 공격을 탐지할 수 없습니다.
+  사내 CA를 신뢰하도록 구성하고 `VERIFY_SSL=true`로 올리는 것을 권합니다.
+- 자격증명이 없으면 요청을 보내기 전에 실행이 중단되고, 어떤 값이 비었는지 안내합니다.
+
+---
+
 ## 파일 구조
 
 ```
@@ -200,10 +250,13 @@ sample-code/
 | `AUTH_001` | CLIENT_ID가 등록되지 않음 | 개발자센터 앱 활성 상태 확인 |
 | `AUTH_003` | secretSign 검증 실패 | SECRET_KEY 재확인 (`$2a$10$...` 29자 형식) |
 | `AUTH_006` | 타임스탬프 만료 (허용 오차 5분 30초 초과) | 시스템 시간 동기화(NTP) 확인 (`date` 명령) |
+| `GW_AUTH_001` (401) | `Authorization` 헤더 누락 | 토큰 발급 후 `Bearer {token}` 헤더 첨부 |
 | `GW_AUTH_003` | JWT 토큰 만료 | 토큰 재발급 후 재시도 |
 | `GW_AUTH_009` | 대상 고객사와 연동 관계 없음 | `X-Svc-Acnt-Id`(서비스코드) 및 앱 상세 > 사용 고객사 연동 상태 확인 |
+| `GW_REQ_002` (400) | `X-Svc-Acnt-Id` 헤더 누락 | `.env`의 `SVC_ACNT_ID` 입력 확인 |
+| `GW_ROUTE_001` (404) | 라우트 없음 — 호스트/경로 오기 | 호스트(`api.sabangnet.co.kr`, `sandbox.sabangnet.co.kr`)와 경로 접두사(`/v3/sb`, `/v3/sbf`) 확인. `/gw/v3`는 외부 호출 불가 |
 | `GW_RATE_001` (429) | 요청량 제한(TPS) 초과 | 응답 헤더 `X-RateLimit-Reset` 시각까지 대기 후 재시도 |
-| `SSLError: CERTIFICATE_VERIFY_FAILED` | Self-signed 인증서 | `.env`에 `VERIFY_SSL=false` 설정 |
-| `ValueError: SECRET_KEY 형식 오류` | `.env.example` 기본값 그대로 사용 중 | `.env`에 실제 발급 값 입력 |
+| `SSLError: CERTIFICATE_VERIFY_FAILED` | 게이트웨이가 TLS 1.3 에서 사내 CA 인증서를 제시 | `.env`에 `VERIFY_SSL=false` (기본값) 또는 사내 CA를 신뢰 저장소에 등록 |
+| `ValueError: SECRET_KEY 형식 오류` | `SECRET_KEY` 미입력 또는 placeholder 사용 중 | `.env`에 개발자센터 발급 값 입력 |
 
 > 모든 에러 응답은 공통 포맷 `{ "code", "message", "timestamp", "status", "path" }` 로 반환됩니다. `code` 필드로 원인을 식별하세요.

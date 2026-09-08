@@ -8,7 +8,7 @@
   4. POST /oauth2/token → access_token 획득
   5. 이후 API 요청: Authorization: Bearer {token} + X-Svc-Acnt-Id: {svcAcctId}
 
-참고: python/product_regist.py (기존 샘플)
+호스트: 운영 https://api.sabangnet.co.kr (개발자센터 https://developer.sabangnet.co.kr)
 """
 import time
 import base64
@@ -21,7 +21,8 @@ from config import (
     SVC_ACNT_ID, BEARER_TOKEN, TIMEOUT, VERIFY_SSL,
 )
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+if not VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 _cached_token: str = ""
 
@@ -40,10 +41,10 @@ def get_token() -> str:
 def _validate_secret_key(key: str) -> None:
     """bcrypt salt 형식 검증. 실패 시 진단 메시지와 함께 ValueError 발생."""
     import re
-    if key == "$2a$10$defghijklmnopqrstuvwxy":
+    if not key:
         raise ValueError(
-            f"SECRET_KEY 형식 오류: {key!r}\n"
-            "  → .env의 SECRET_KEY가 기본값(placeholder)입니다 — 개발자센터에서 발급받은 실제 값으로 교체하세요"
+            "SECRET_KEY가 비어 있습니다\n"
+            "  → 연동 개발자센터(https://developer.sabangnet.co.kr) > 앱 관리 > 앱 상세에서 발급받아 .env에 입력하세요"
         )
     # bcrypt salt: $2a$ 또는 $2b$ 또는 $2y$ + 2자리 cost + $ + 22자리 base64
     pattern = r'^\$2[aby]\$\d{2}\$.{22}$'
@@ -54,13 +55,18 @@ def _validate_secret_key(key: str) -> None:
         if len(key) != 29:
             hint.append(f"길이가 29자여야 하는데 현재 {len(key)}자입니다")
         raise ValueError(
-            f"SECRET_KEY 형식 오류: {key!r}\n"
+            "SECRET_KEY 형식 오류\n"
             + ("\n".join(f"  → {h}" for h in hint) if hint else "  → bcrypt salt 형식($2a$NN$<22자>)이 아닙니다")
         )
 
 
 def _fetch_token() -> str:
     """bcrypt secretSign 방식으로 OAuth2 토큰 발급."""
+    if not CLIENT_ID:
+        raise ValueError(
+            "CLIENT_ID가 비어 있습니다\n"
+            "  → 연동 개발자센터(https://developer.sabangnet.co.kr) > 앱 관리 > 앱 상세에서 발급받아 .env에 입력하세요"
+        )
     _validate_secret_key(SECRET_KEY)
     timestamp = str(int(time.time() * 1000))
     data_to_sign = f"{CLIENT_ID}_{timestamp}".encode("utf-8")
@@ -68,7 +74,7 @@ def _fetch_token() -> str:
         hashed = bcrypt.hashpw(data_to_sign, SECRET_KEY.encode("utf-8"))
     except ValueError as e:
         raise ValueError(
-            f"bcrypt.hashpw 실패 — SECRET_KEY: {SECRET_KEY!r}\n  원인: {e}"
+            f"bcrypt.hashpw 실패 — SECRET_KEY 형식을 확인하세요($2a$NN$<22자>)\n  원인: {e}"
         ) from e
     secret_sign = base64.b64encode(hashed).decode("utf-8")
 
@@ -84,9 +90,10 @@ def _fetch_token() -> str:
     resp = requests.post(TOKEN_URL, data=payload, headers=headers,
                          timeout=TIMEOUT, verify=VERIFY_SSL)
     if not resp.ok:
+        safe_payload = {**payload, "secretSign": "***"}
         print(
-            f"❌ 토큰 발급 실패 [{resp.status_code}]\n"
-            f"  request payload : {payload}\n"
+            f"❌ 토큰 발급 실패 [{resp.status_code}] {TOKEN_URL}\n"
+            f"  request payload : {safe_payload}\n"
             f"  response body   : {resp.text}"
         )
     resp.raise_for_status()
@@ -99,12 +106,35 @@ def _fetch_token() -> str:
 
 def auth_headers() -> dict:
     """API 요청에 사용할 인증 헤더 반환."""
+    if not SVC_ACNT_ID:
+        raise ValueError(
+            "SVC_ACNT_ID가 비어 있습니다 — 게이트웨이가 GW_REQ_002(400)를 반환합니다\n"
+            "  → 개발자센터 > 앱 관리 > 앱 상세 > 사용 고객사의 서비스코드를 .env에 입력하세요"
+        )
     return {
         "Authorization": f"Bearer {get_token()}",
         "Content-Type": "application/json",
         "Accept": "*/*",
         "X-Svc-Acnt-Id": SVC_ACNT_ID,
     }
+
+
+def preflight() -> None:
+    """실행 전 .env 자격증명 점검. 누락 시 요청을 보내지 않고 안내 후 종료."""
+    missing = []
+    if not BEARER_TOKEN:
+        if not CLIENT_ID:
+            missing.append("CLIENT_ID")
+        if not SECRET_KEY:
+            missing.append("SECRET_KEY")
+    if not SVC_ACNT_ID:
+        missing.append("SVC_ACNT_ID")
+    if missing:
+        raise SystemExit(
+            "❌ .env 설정이 비어 있습니다: " + ", ".join(missing) + "\n"
+            "  → cp .env.example .env 후, 연동 개발자센터(https://developer.sabangnet.co.kr)\n"
+            "     > 앱 관리 > 앱 상세에서 발급받은 값을 입력하세요"
+        )
 
 
 def reset_token():

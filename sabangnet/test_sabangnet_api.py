@@ -4,7 +4,10 @@
 사방넷 OMS(주문관리시스템)의 주요 기능을 REST/JSON 으로 연동하는 API 샘플.
 모든 엔드포인트는 `/v3/sb/` 접두사를 사용합니다 (config.SABANGNET_API_BASE).
 ※ OpenAPI 명세(sabangnet-current.yaml)에는 경로가 `/gw/v3/`로 표기되어 있으나,
+  이는 게이트웨이 내부 경로로 외부 호출 시 GW_ROUTE_001(404)이 반환됩니다.
   실제 호출 경로는 `/v3/sb/`이며 아래 표/주석은 실제 호출 경로 기준입니다.
+호스트는 운영 `https://api.sabangnet.co.kr` 이 기본이며, 샌드박스는
+  `https://sandbox.sabangnet.co.kr` 입니다. (개발자센터: https://developer.sabangnet.co.kr)
 
 요청 본문 규칙 (명세 공통)
   - 등록(단일)/수정 : 대상 data object(JSON)
@@ -52,15 +55,17 @@
     python sabangnet/test_sabangnet_api.py --test cs_search
     python sabangnet/test_sabangnet_api.py --list
 """
+import os
 import sys
 import json
 import argparse
 import traceback
 import requests
 
-sys.path.insert(0, ".")
+# 작업 디렉터리가 아니라 스크립트 기준 경로를 사용 (동명 모듈 로딩 방지)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import SABANGNET_API_BASE, TIMEOUT, VERIFY_SSL
-from auth import auth_headers
+from auth import auth_headers, preflight
 from logger import setup_logging, log_success, log_fail
 from dummy_data.sabangnet_data import (
     CS_SEARCH_REQUEST, CS_ANSWER_REQUEST,
@@ -384,6 +389,8 @@ if __name__ == "__main__":
     parser.add_argument("--list", action="store_true", help="테스트 목록 출력")
     args = parser.parse_args()
 
+    if not args.list:
+        preflight()
     setup_logging()
     if args.list:
         print("사용 가능한 테스트:")

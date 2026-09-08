@@ -20,7 +20,7 @@ CS_SEARCH_REQUEST = {
 CS_ANSWER_REQUEST = {
     "items": [
         {
-            "csSrno": 51280395,
+            "csSrno": 10000001,   # 실제 조회된 문의 번호로 교체
             "answerContent": "고객님, 문의하신 사항에 대해 안내드립니다. 해당 상품은 재고가 충분하며 3~5일 내 발송 가능합니다.",
         }
     ]
